@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Python Flask Upload and display image</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cropperjs"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <h1 align="center">Python Flask Upload and display image</h1>
+    <div class="container">
+        <div class="row">
+            <h2>Select a file to upload</h2>
+            <p>
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                <ul>
+                    {% for message in messages %}
+                    <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                {% endwith %}
+            </p>
+
+            {% if filename %}
+            <div>
+                <h3>Original Image:</h3>
+                <img id="cropper-image" src="{{ url_for('static', filename='uploads/' + filename) }}">
+            </div>
+            {% endif %}
+            
+            {% if custom_cropped_filename %}
+            <div>
+                <h3>Custom Cropped Image:</h3>
+                <img src="{{ url_for('static', filename='uploads/' + custom_cropped_filename) }}">
+            </div>
+
+            {% elif cropped_images %}
+            <div>
+                <h3>Square Cropped Images:</h3>
+                {% for image in cropped_images %}
+                <img src="{{ url_for('static', filename='uploads/' + image) }}">
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="post" action="/upload" enctype="multipart/form-data">
+                <dl>
+                    <p><input type="file" name="file" class="form-control" autocomplete="off" required></p>
+                </dl>
+                <p><input type="submit" value="Submit" class="btn btn-info"></p>
+            </form>
+
+            <form method="post" action="/crop" enctype="multipart/form-data">
+                <input type="hidden" name="filename" value="{{ filename }}">
+                <input type="hidden" name="custom_cropping_data" id="custom_cropping_data">
+                <dl>
+                    <p>
+                        <label for="num_squares">Number of Squares (n):</label>
+                        <input type="number" name="num_squares" class="form-control" autocomplete="off" value = 1>
+                    </p>
+
+                    <p>
+                        <label for="brightness">Brightness Factor:</label>
+                        <input type="number" step="0.1" name="brightness" class="form-control" autocomplete="off" value="1.0">
+                    </p>
+
+                    <p>
+                        <label for="contrast">Contrast Factor:</label>
+                        <input type="number" step="0.1" name="contrast" class="form-control" autocomplete="off" value="1.0">
+                    </p>
+                </dl>
+                
+                <p><input type="submit" value="Crop Squares" class="btn btn-success" id="crop-squares-btn" name="crop_type" ></p>
+                <p><input type="submit" class="btn btn-warning" id="custom-crop-btn" name="custom_crop_type" value="Custom Crop"></p>
+            </form>
+            
+        
+            <script>
+            $(document).ready(function () {
+                var cropper = new Cropper(document.getElementById('cropper-image'), {
+                    movable: true,
+                    zoomable: true,
+                    rotatable: true,
+                    scalable: true,
+                    crop: function (event) {
+                        var croppingData = {
+                            x: event.detail.x,
+                            y: event.detail.y,
+                            width: event.detail.width,
+                            height: event.detail.height,
+                        };
+                        $('#custom_cropping_data').val(JSON.stringify(croppingData));
+                    },
+                });
+            });
+            </script>
+</body>
+</html>
